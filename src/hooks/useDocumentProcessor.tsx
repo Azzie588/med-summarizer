@@ -1,6 +1,5 @@
 import { useState, useCallback } from "react";
 import { supabase } from "../lib/supabase";
-import { extractTextFromPDF } from "../lib/pdfExtract";
 import type { DocumentType } from "../types/database";
 
 export interface ProcessingState {
@@ -24,20 +23,30 @@ export function useDocumentProcessor() {
         ...prev,
         [documentId]: {
           status: "extracting",
-          message: "Extracting text from PDF...",
+          message: "Loading PDF engine...",
           error: null,
         },
       }));
 
       try {
-        // Download PDF from storage
-        const { data: fileData, error: downloadError } = await supabase.storage
-          .from("medical-pdfs")
-          .download(storagePath);
+        const [{ extractTextFromPDF }, { data: fileData, error: downloadError }] =
+          await Promise.all([
+            import("../lib/pdfExtract"),
+            supabase.storage.from("medical-pdfs").download(storagePath),
+          ]);
 
         if (downloadError || !fileData) {
           throw new Error("Failed to download PDF from storage");
         }
+
+        setProcessingState((prev) => ({
+          ...prev,
+          [documentId]: {
+            status: "extracting",
+            message: "Extracting text from PDF...",
+            error: null,
+          },
+        }));
 
         // Extract text from PDF
         const text = await extractTextFromPDF(fileData as File);
