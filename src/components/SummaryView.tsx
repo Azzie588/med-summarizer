@@ -1,4 +1,5 @@
 import type { Summary } from "../types/database";
+import type { ProcessingState } from "../hooks/useDocumentProcessor";
 import {
   Calendar,
   User,
@@ -7,16 +8,46 @@ import {
   ArrowLeft,
   Download,
   Loader2,
+  AlertCircle,
+  RefreshCw,
 } from "lucide-react";
 
 interface SummaryViewProps {
   summary: Summary | undefined;
   filename: string;
+  processing?: ProcessingState;
   onBack: () => void;
+  onRetry: () => void;
 }
 
-export function SummaryView({ summary, filename, onBack }: SummaryViewProps) {
+export function SummaryView({ summary, filename, processing, onBack, onRetry }: SummaryViewProps) {
   if (!summary) {
+    if (processing?.status === "error") {
+      return (
+        <div className="space-y-6">
+          <button
+            onClick={onBack}
+            className="flex items-center gap-2 text-slate-600 hover:text-slate-800 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            Back to documents
+          </button>
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center">
+            <AlertCircle className="w-10 h-10 text-red-500 mx-auto mb-4" />
+            <p className="text-slate-700 font-medium">Processing failed</p>
+            <p className="text-sm text-slate-500 mt-1">{processing.error}</p>
+            <button
+              onClick={onRetry}
+              className="mt-5 inline-flex items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg transition-colors"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Retry
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="space-y-6">
         <button

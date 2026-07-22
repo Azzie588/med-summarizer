@@ -202,7 +202,9 @@ export function Dashboard() {
           <SummaryView
             summary={selectedDocument.summaries[0]}
             filename={selectedDocument.filename}
+            processing={processingState[selectedDocument.id]}
             onBack={handleBack}
+            onRetry={() => handleProcessDocument(selectedDocument)}
           />
         )}
 
